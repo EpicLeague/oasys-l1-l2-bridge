@@ -24,13 +24,13 @@ const config: HardhatUserConfig = {
   },
   networks: {
     l1: {
-      url: 'https://rpc.testnet.oasys.games/',
-      chainId: 9372,
+      url: 'https://rpc.mainnet.oasys.games/',
+      chainId: 248,
       accounts: [process.env.PRIVATE_KEY],
     },
     l2: {
-      url: 'https://rpc.sandverse.oasys.games/',
-      chainId: 20197,
+      url: 'https://rpc.mainnet.oasys.homeverse.games/',
+      chainId: 19011,
       accounts: [process.env.PRIVATE_KEY],
       gasPrice: 0,
     },
