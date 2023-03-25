@@ -1,7 +1,5 @@
 import hre from 'hardhat'
 import { BigNumber } from 'ethers'
-import { TransactionReceipt } from '@ethersproject/abstract-provider'
-import * as dotenv from 'dotenv'
 
 import {
   getCrossDomainMessageHashesFromTx,
@@ -11,52 +9,15 @@ import {
   log,
 } from './common'
 
-// Get the token address on the Hub-Layer created by L1StandardERC20Factory.
-const getL1ERC20AddressFromReceipt = (receipt: TransactionReceipt): string => {
-  const logs = receipt.logs.filter(
-    (x) =>
-      x.address === addresses.l1.L1StandardERC20Factory &&
-      x.topics[0] === hre.ethers.utils.id('ERC20Created(string,address)'),
-  )
-  for (const log of logs) {
-    const [address] = hre.ethers.utils.defaultAbiCoder.decode(
-      ['address'],
-      log.topics[2],
-    )
-    return address
-  }
-}
-
-// Get the token address on the Verse-Layer created by L2StandardTokenFactory.
-const getL2ERC20AddressFromReceipt = (receipt: TransactionReceipt): string => {
-  const logs = receipt.logs.filter(
-    (x) =>
-      x.address === addresses.l2.L2StandardTokenFactory &&
-      x.topics[0] ===
-        hre.ethers.utils.id('StandardL2TokenCreated(address,address)'),
-  )
-  for (const log of logs) {
-    const [address] = hre.ethers.utils.defaultAbiCoder.decode(
-      ['address'],
-      log.topics[2],
-    )
-    return address
-  }
-}
-
 const main = async () => {
   const oFT_NAME = 'EPL'
   const oFT_SYMBOL = 'EPL'
-  const oFT_AMOUNT = hre.ethers.utils.parseEther('9')
+  const oFT_AMOUNT = hre.ethers.utils.parseEther('1')
 
   // Get Hub-Layer pre-deployed contracts.
   switchNetwork('l1')
   const [signer] = await hre.ethers.getSigners()
   
-  // const l1ERC20Factory = (
-  //   await hre.ethers.getContractFactory('L1StandardERC20Factory')
-  // ).attach(addresses.l1.L1StandardERC20Factory)
-
   const l1ERC20Bridge = await hre.ethers.getContractAt(
     'IL1StandardBridge',
     addresses.l1.Proxy__OVM_L1StandardBridge,
@@ -64,11 +25,6 @@ const main = async () => {
 
   // Get Verse-Layer pre-deployed contracts.
   switchNetwork('l2')
-
-  // const l2ERC20Factory = await hre.ethers.getContractAt(
-  //   'L2StandardTokenFactory',
-  //   addresses.l2.L2StandardTokenFactory,
-  // )
 
   const l2ERC20Bridge = await hre.ethers.getContractAt(
     'IL2ERC20Bridge',
@@ -195,57 +151,6 @@ const main = async () => {
     `    balance on Hub-Layer  : ${l1Balance}`,
     `    balance on Verse-Layer: ${l2Balance}\n\n`,
   )
-
-  // /**
-  //  * Step 7
-  //  */
-  // log(`[Verse-Layer] Burn and Withdraw oFT using L2ERC20Bridge...`)
-
-  // switchNetwork('l2')
-  // const tx6 = await l2ERC20Bridge.withdraw(
-  //   l2oft.address,
-  //   oFT_AMOUNT,
-  //   2_000_000,
-  //   '0x',
-  // )
-  // const receipt6 = await tx6.wait()
-  // start = new Date()
-  // ;[l1Balance, l2Balance] = await getBalance()
-  // log(
-  //   'done',
-  //   `    tx: ${tx6.hash} (gas: ${receipt6.gasUsed})`,
-  //   `    balance on Hub-Layer  : ${l1Balance}`,
-  //   `    balance on Verse-Layer: ${l2Balance}\n\n`,
-  // )
-
-  // /**
-  //  * Step 8
-  //  */
-  // log(
-  //   '[Verse-Layer > Hub-Layer] Wait for the Relayer to relay the message(takes 1~2 minutes)...',
-  // )
-
-  // switchNetwork('l2')
-  // const [l2MsgHash] = await getCrossDomainMessageHashesFromTx(
-  //   addresses.l2.L2CrossDomainMessenger,
-  //   tx6.hash,
-  // )
-
-  // switchNetwork('l1')
-  // const l1RelayTx = await getTransactionReceiptFromMsgHash(
-  //   addresses.l1.Proxy__OVM_L1CrossDomainMessenger,
-  //   l2MsgHash,
-  // )
-
-  // ;[l1Balance, l2Balance] = await getBalance()
-  // log(
-  //   'done',
-  //   `    elapsed: ${(new Date().getTime() - start.getTime()) / 1000} sec`,
-  //   `    relayer tx: ${l1RelayTx.transactionHash} (gas: ${l1RelayTx.gasUsed})`,
-  //   `    message hash: ${l2MsgHash}`,
-  //   `    balance on Hub-Layer  : ${l1Balance}`,
-  //   `    balance on Verse-Layer: ${l2Balance}\n\n`,
-  // )
 }
 
 main()
